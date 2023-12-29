@@ -1,0 +1,165 @@
+// Automatic FlutterFlow imports
+import '/backend/backend.dart';
+import '/backend/schema/structs/index.dart';
+import '/flutter_flow/flutter_flow_theme.dart';
+import '/flutter_flow/flutter_flow_util.dart';
+import '/custom_code/widgets/index.dart'; // Imports other custom widgets
+import '/custom_code/actions/index.dart'; // Imports custom actions
+import '/flutter_flow/custom_functions.dart'; // Imports custom functions
+import 'package:flutter/material.dart';
+// Begin custom widget code
+// DO NOT REMOVE OR MODIFY THE CODE ABOVE!
+
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+
+class SimpleAudioPlayer extends StatefulWidget {
+  const SimpleAudioPlayer({
+    Key? key,
+    this.width,
+    this.height,
+    this.audioUrl,
+    this.title,
+    this.playbackButtonColor,
+    this.fillColor,
+  }) : super(key: key);
+
+  final double? width;
+  final double? height;
+  final String? audioUrl;
+  final String? title;
+  final Color? playbackButtonColor;
+  final Color? fillColor;
+
+  @override
+  _SimpleAudioPlayerState createState() => _SimpleAudioPlayerState();
+}
+
+class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
+  late AudioPlayer _player;
+  bool _isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _player = AudioPlayer();
+    _initializeAndPlay();
+  }
+
+  Future<void> _initializeAndPlay() async {
+    try {
+      await _player.setUrl(widget.audioUrl ??
+          'https://cdn.freesound.org/previews/46/46992_514283-lq.mp3');
+      await _player.play();
+      setState(() {
+        _isPlaying = true;
+      });
+    } catch (e) {
+      print("Error loading audio source: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return [if (duration.inHours > 0) hours, minutes, seconds].join(':');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(8),
+      color: widget.fillColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Top Row with Title, Duration, and Play Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // First Column for Title and Duration
+              Flexible(
+                flex: 3, // Adjust the flex factor as needed
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title ?? 'Default Title',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        fontFamily: 'Arial',
+                      ),
+                    ),
+                    StreamBuilder<Duration?>(
+                      stream: _player.durationStream,
+                      builder: (context, snapshot) {
+                        final currentPosition = snapshot.data ?? Duration.zero;
+                        final totalDuration = _player.duration ?? Duration.zero;
+                        return Text(
+                          '${_formatDuration(currentPosition)} / ${_formatDuration(totalDuration)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.normal,
+                            fontSize: 10,
+                            fontFamily: 'Arial',
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // Second Column for Play/Pause Button
+              Flexible(
+                flex: 1, // Adjust the flex factor as needed
+                child: IconButton(
+                  icon: Icon(
+                    _isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: widget.playbackButtonColor,
+                  ),
+                  onPressed: () {
+                    if (_player.playing) {
+                      _player.pause();
+                      setState(() {
+                        _isPlaying = false;
+                      });
+                    } else {
+                      _player.play();
+                      setState(() {
+                        _isPlaying = true;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          // Bottom Row for Slider
+          StreamBuilder<Duration?>(
+            stream: _player.positionStream,
+            builder: (context, snapshot) {
+              final currentPosition = snapshot.data ?? Duration.zero;
+              final totalDuration = _player.duration ?? Duration.zero;
+              return Slider(
+                min: 0.0,
+                max: totalDuration.inMilliseconds.toDouble(),
+                value: currentPosition.inMilliseconds.toDouble(),
+                onChanged: (value) {
+                  _player.seek(Duration(milliseconds: value.toInt()));
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
