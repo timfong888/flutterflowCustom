@@ -43,17 +43,15 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
   void initState() {
     super.initState();
     _player = AudioPlayer();
-    _initializeAndPlay();
+    _initializeAudio(); // not _initializeAndPlay()
   }
 
-  Future<void> _initializeAndPlay() async {
+  Future<void> _initializeAudio() async {
     try {
       await _player.setUrl(widget.audioUrl ??
           'https://cdn.freesound.org/previews/46/46992_514283-lq.mp3');
-      await _player.play();
-      setState(() {
-        _isPlaying = true;
-      });
+      // Do not call play here
+
     } catch (e) {
       print("Error loading audio source: $e");
     }
@@ -100,14 +98,14 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
                       ),
                     ),
                     StreamBuilder<Duration?>(
-                      stream: _player.durationStream,
+                      stream: _player.positionStream,
                       builder: (context, snapshot) {
                         final currentPosition = snapshot.data ?? Duration.zero;
                         final totalDuration = _player.duration ?? Duration.zero;
                         return Text(
                           '${_formatDuration(currentPosition)} / ${_formatDuration(totalDuration)}',
                           style: TextStyle(
-                            fontWeight: FontWeight.normal,
+                            fontWeight: FontWeight.w200,
                             fontSize: 10,
                             fontFamily: 'Arial',
                           ),
@@ -125,14 +123,14 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
                     _isPlaying ? Icons.pause : Icons.play_arrow,
                     color: widget.playbackButtonColor,
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (_player.playing) {
-                      _player.pause();
+                      await _player.pause();
                       setState(() {
                         _isPlaying = false;
                       });
                     } else {
-                      _player.play();
+                      await _player.play();
                       setState(() {
                         _isPlaying = true;
                       });
