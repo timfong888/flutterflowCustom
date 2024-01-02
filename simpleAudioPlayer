@@ -64,14 +64,16 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
       final playlist = ConcatenatingAudioSource(
         children: widget.compactionDocPlaylist
                 ?.map((doc) => AudioSource.uri(Uri.parse(doc.audioUrl)))
-                .toList() ??
-            [],
+                .toList() ?? [],
       );
-      await _player.setAudioSource(playlist, initialIndex: widget.currentIndex);
+      if (playlist.children.isNotEmpty) {
+        await _player.setAudioSource(playlist, initialIndex: widget.currentIndex);
+      }
     } catch (e) {
       print("Error loading audio source: $e");
     }
   }
+
 
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -96,22 +98,20 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
   }
 
   void _changeTrack(int newIndex) {
-    // Ensure newIndex is not null and within the bounds of compactionDocPlaylist
-    if (newIndex >= 0 && (widget.compactionDocPlaylist?.length ?? 0) > newIndex) {
-      final newTrack = widget.compactionDocPlaylist?[newIndex];
-      if (newTrack != null) {
-        _player.setUrl(newTrack.audioUrl).then((_) {
-          // Optionally, you can start playing the new track immediately
-          _player.play();
-        });
-      }
+    if (newIndex >= 0 && widget.compactionDocPlaylist != null &&
+        newIndex < widget.compactionDocPlaylist!.length) {
+      final newTrack = widget.compactionDocPlaylist![newIndex];
+      _player.setUrl(newTrack.audioUrl).then((_) {
+        _player.play();
+      });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     CompactionsRecord? currentTrack;
-    if (widget.compactionDocPlaylist?.isNotEmpty == true &&
+    if (widget.compactionDocPlaylist != null &&
         widget.currentIndex >= 0 &&
         widget.currentIndex < widget.compactionDocPlaylist!.length) {
       currentTrack = widget.compactionDocPlaylist![widget.currentIndex];
