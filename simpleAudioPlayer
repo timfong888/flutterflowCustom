@@ -96,7 +96,8 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
   }
 
   void _changeTrack(int newIndex) {
-    if (newIndex >= 0 && newIndex < widget.compactionDocPlaylist?.length ?? 0) {
+    // Ensure newIndex is not null and within the bounds of compactionDocPlaylist
+    if (newIndex >= 0 && (widget.compactionDocPlaylist?.length ?? 0) > newIndex) {
       final newTrack = widget.compactionDocPlaylist?[newIndex];
       if (newTrack != null) {
         _player.setUrl(newTrack.audioUrl).then((_) {
@@ -106,7 +107,6 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
