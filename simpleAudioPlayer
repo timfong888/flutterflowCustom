@@ -43,16 +43,19 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
     _player = AudioPlayer();
     _initializeAudio();
 
+    // Listening to changes in the playing track's index
     _player.currentIndexStream.listen((currentIndex) {
       setState(() {
-        // Triggers a rebuild with updated track information
+        // Handle UI updates or other actions when the track changes
       });
     });
 
-    _player.playingStream.listen((playing) {
-      setState(() {
-        _isPlaying = playing;
-      });
+    // Listening to the player state to identify when a track finishes playing
+    _player.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.completed) {
+        // This block is executed when a track finishes playing
+        // Implement your custom logic here, e.g., UI updates, loading next track info, etc.
+      }
     });
   }
 
@@ -80,6 +83,30 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
     _player.dispose();
     super.dispose();
   }
+
+  @override
+  void didUpdateWidget(covariant SimpleAudioPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if currentIndex has changed
+    if (widget.currentIndex != oldWidget.currentIndex) {
+      // Update the audio player to play the track at the new currentIndex
+      _changeTrack(widget.currentIndex);
+    }
+  }
+
+  void _changeTrack(int newIndex) {
+    if (newIndex >= 0 && newIndex < widget.compactionDocPlaylist?.length ?? 0) {
+      final newTrack = widget.compactionDocPlaylist?[newIndex];
+      if (newTrack != null) {
+        _player.setUrl(newTrack.audioUrl).then((_) {
+          // Optionally, you can start playing the new track immediately
+          _player.play();
+        });
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
