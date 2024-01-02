@@ -7,7 +7,6 @@ import '/custom_code/widgets/index.dart'; // Imports other custom widgets
 import '/custom_code/actions/index.dart'; // Imports custom actions
 import '/flutter_flow/custom_functions.dart'; // Imports custom functions
 import 'package:flutter/material.dart';
-// Begin custom widget code
 import 'package:just_audio/just_audio.dart';
 
 class SimpleAudioPlayer extends StatefulWidget {
@@ -44,14 +43,12 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
     _player = AudioPlayer();
     _initializeAudio();
 
-    // Listener for currentIndexStream
     _player.currentIndexStream.listen((currentIndex) {
       setState(() {
         // Triggers a rebuild with updated track information
       });
     });
 
-    // Listener for playing state
     _player.playingStream.listen((playing) {
       setState(() {
         _isPlaying = playing;
@@ -73,15 +70,15 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
     }
   }
 
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return "${twoDigits(duration.inHours)}:${twoDigits(duration.inMinutes.remainder(60))}:${twoDigits(duration.inSeconds.remainder(60))}";
+  }
+
   @override
   void dispose() {
     _player.dispose();
     super.dispose();
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    return "${twoDigits(duration.inHours)}:${twoDigits(duration.inMinutes.remainder(60))}:${twoDigits(duration.inSeconds.remainder(60))}";
   }
 
   @override
@@ -107,8 +104,9 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
               if (currentTrack != null)
                 Image.network(
                   currentTrack.itemThumbnailUrl,
-                  width: 100,  // Adjust as needed
-                  height: widget.height != null ? widget.height! * 0.85 : 85,  // 85% of widget.height
+                  height: widget.height != null
+                      ? widget.height! * 0.85
+                      : 85, // 85% of widget.height
                 ),
 
               // Text Column for Title and Duration
@@ -116,13 +114,19 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Text widget for title
-                    // Text widget for duration
-                    // ... other text-related widgets ...
+                    // Text widget for the title
+                    if (currentTrack != null)
+                      Text(
+                        currentTrack.itemTitle,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,  // Adjust font size as needed
+                          color: widget.textColor,
+                        ),
+                      ),
                   ],
                 ),
               ),
-
               // Play/Pause Button
               IconButton(
                 icon: Icon(
@@ -143,6 +147,7 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
             ],
           ),
           SizedBox(height: 4),
+          // Duration and Progress Slider
           StreamBuilder<Duration?>(
             stream: _player.positionStream,
             builder: (context, snapshot) {
@@ -175,4 +180,3 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
     );
   }
 }
-
