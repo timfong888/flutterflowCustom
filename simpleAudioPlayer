@@ -100,49 +100,45 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Display the thumbnail if available
+              // Thumbnail Image
               if (currentTrack != null)
                 Image.network(
                   currentTrack.itemThumbnailUrl,
-                  width: 100,
-                  height: 100,
+                  width: 100,  // Adjust as needed
+                  height: widget.height != null ? widget.height! * 0.85 : 85,  // 85% of widget.height
                 ),
-              // Additional spacing
-              SizedBox(width: 8),
-              // Column for Title and Duration
+
+              // Text Column for Title and Duration
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      currentTrack?.itemTitle ?? 'Default Title',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w200,
-                        fontSize: 10,
-                        fontFamily: 'Arial',
-                        color: widget.textColor,
-                      ),
-                    ),
-                    StreamBuilder<Duration?>(
-                      stream: _player.positionStream,
-                      builder: (context, snapshot) {
-                        final currentPosition = snapshot.data ?? Duration.zero;
-                        final totalDuration = _player.duration ?? Duration.zero;
-                        return Text(
-                          '${_formatDuration(currentPosition)} / ${_formatDuration(totalDuration)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w100,
-                            fontSize: 8,
-                            fontFamily: 'Arial',
-                            color: widget.textColor,
-                          ),
-                        );
-                      },
-                    ),
+                    // Text widget for title
+                    // Text widget for duration
+                    // ... other text-related widgets ...
                   ],
                 ),
+              ),
+
+              // Play/Pause Button
+              IconButton(
+                icon: Icon(
+                  _isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: widget.playbackButtonColor,
+                ),
+                onPressed: () {
+                  if (_player.playing) {
+                    _player.pause();
+                  } else {
+                    _player.play();
+                  }
+                  setState(() {
+                    _isPlaying = !_isPlaying;
+                  });
+                },
               ),
             ],
           ),
@@ -174,10 +170,6 @@ class _SimpleAudioPlayerState extends State<SimpleAudioPlayer> {
               );
             },
           ),
-          // Optionally display the thumbnail
-          if (currentTrack != null)
-            Image.network(currentTrack.itemThumbnailUrl,
-                width: 100, height: 100),
         ],
       ),
     );
